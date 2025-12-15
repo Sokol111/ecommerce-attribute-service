@@ -1,0 +1,28 @@
+logger:
+  level: "debug"
+  development: true
+
+server:
+  port: 8080
+
+mongo:
+  host: "localhost"
+  port: 27017
+  database: "attribute"
+  direct-connection: true
+  migrations:
+    enabled: true
+    auto-migrate: true
+
+kafka:
+  brokers: "localhost:9092"
+  schema-registry:
+    url: "http://localhost:8084"
+    auto-register-schemas: true
+
+observability:
+  otel-collector-endpoint: ""
+  tracing:
+    enabled: true
+  metrics:
+    enabled: false

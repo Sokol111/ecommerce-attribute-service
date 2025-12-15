@@ -1,0 +1,30 @@
+logger:
+  level: "debug"
+  development: true
+
+server:
+  port: 8080
+  timeout:
+    enabled: true
+
+mongo:
+  host: "mongo"
+  port: 27017
+  database: "attribute"
+  replica-set: rs0
+  migrations:
+    enabled: true
+    auto-migrate: true
+
+kafka:
+  brokers: "kafka:29092"
+  schema-registry:
+    url: "http://schema-registry:8081"
+    auto-register-schemas: true
+
+observability:
+  otel-collector-endpoint: "otel-collector-opentelemetry-collector.observability.svc:4317"
+  tracing:
+    enabled: true
+  metrics:
+    enabled: false
