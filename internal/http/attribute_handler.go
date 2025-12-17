@@ -207,46 +207,6 @@ func (h *attributeHandler) DeleteAttribute(c context.Context, request httpapi.De
 	}, nil
 }
 
-func (h *attributeHandler) CreateAttributeOption(c context.Context, request httpapi.CreateAttributeOptionRequestObject) (httpapi.CreateAttributeOptionResponseObject, error) {
-	return httpapi.CreateAttributeOption500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) DeleteAttributeOption(c context.Context, request httpapi.DeleteAttributeOptionRequestObject) (httpapi.DeleteAttributeOptionResponseObject, error) {
-	return httpapi.DeleteAttributeOption500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) GetAttributeOptionById(c context.Context, request httpapi.GetAttributeOptionByIdRequestObject) (httpapi.GetAttributeOptionByIdResponseObject, error) {
-	return httpapi.GetAttributeOptionById500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) GetAttributeOptionList(c context.Context, request httpapi.GetAttributeOptionListRequestObject) (httpapi.GetAttributeOptionListResponseObject, error) {
-	return httpapi.GetAttributeOptionList500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) UpdateAttributeOption(c context.Context, request httpapi.UpdateAttributeOptionRequestObject) (httpapi.UpdateAttributeOptionResponseObject, error) {
-	return httpapi.UpdateAttributeOption500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
 func (h *attributeHandler) AssignAttributeToCategory(c context.Context, request httpapi.AssignAttributeToCategoryRequestObject) (httpapi.AssignAttributeToCategoryResponseObject, error) {
 	return httpapi.AssignAttributeToCategory500ApplicationProblemPlusJSONResponse{
 		Status: 500,
