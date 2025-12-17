@@ -1,0 +1,76 @@
+package command
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
+	"github.com/Sokol111/ecommerce-commons/pkg/persistence"
+)
+
+type UpdateAttributeCommand struct {
+	ID                string
+	Version           int
+	Name              string
+	Slug              string
+	Type              string
+	Unit              *string
+	DefaultFilterable bool
+	DefaultSearchable bool
+	SortOrder         int
+	Enabled           bool
+}
+
+type UpdateAttributeCommandHandler interface {
+	Handle(ctx context.Context, cmd UpdateAttributeCommand) (*attribute.Attribute, error)
+}
+
+type updateAttributeHandler struct {
+	repo attribute.Repository
+}
+
+func NewUpdateAttributeHandler(repo attribute.Repository) UpdateAttributeCommandHandler {
+	return &updateAttributeHandler{
+		repo: repo,
+	}
+}
+
+func (h *updateAttributeHandler) Handle(ctx context.Context, cmd UpdateAttributeCommand) (*attribute.Attribute, error) {
+	a, err := h.repo.FindByID(ctx, cmd.ID)
+	if err != nil {
+		if errors.Is(err, persistence.ErrEntityNotFound) {
+			return nil, persistence.ErrEntityNotFound
+		}
+		return nil, fmt.Errorf("failed to get attribute: %w", err)
+	}
+
+	if a.Version != cmd.Version {
+		return nil, persistence.ErrOptimisticLocking
+	}
+
+	attrType := attribute.AttributeType(cmd.Type)
+
+	if err := a.Update(
+		cmd.Name,
+		cmd.Slug,
+		attrType,
+		cmd.Unit,
+		cmd.DefaultFilterable,
+		cmd.DefaultSearchable,
+		cmd.SortOrder,
+		cmd.Enabled,
+	); err != nil {
+		return nil, fmt.Errorf("failed to update attribute: %w", err)
+	}
+
+	updated, err := h.repo.Update(ctx, a)
+	if err != nil {
+		if errors.Is(err, persistence.ErrOptimisticLocking) {
+			return nil, persistence.ErrOptimisticLocking
+		}
+		return nil, fmt.Errorf("failed to update attribute: %w", err)
+	}
+
+	return updated, nil
+}

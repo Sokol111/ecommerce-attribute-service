@@ -3,7 +3,12 @@ package main
 import (
 	"context"
 
+	"github.com/Sokol111/ecommerce-attribute-service-api/gen/httpapi"
+	"github.com/Sokol111/ecommerce-attribute-service/internal/application"
+	"github.com/Sokol111/ecommerce-attribute-service/internal/http"
+	"github.com/Sokol111/ecommerce-attribute-service/internal/infrastructure/persistence/mongo"
 	"github.com/Sokol111/ecommerce-commons/pkg/modules"
+	"github.com/Sokol111/ecommerce-commons/pkg/swaggerui"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -16,13 +21,12 @@ var AppModules = fx.Options(
 	modules.NewObservabilityModule(),
 	modules.NewMessagingModule(),
 	// Domain & Application
-	// mongo.Module(),
-	// application.Module(),
-	// kafka.Module(),
+	mongo.Module(),
+	application.Module(),
 
 	// HTTP
-	// http.NewHttpHandlerModule(),
-	// swaggerui.NewSwaggerModule(swaggerui.SwaggerConfig{OpenAPIContent: httpapi.OpenAPIDoc}),
+	http.NewHttpHandlerModule(),
+	swaggerui.NewSwaggerModule(swaggerui.SwaggerConfig{OpenAPIContent: httpapi.OpenAPIDoc}),
 )
 
 func main() {
