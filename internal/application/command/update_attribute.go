@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/samber/lo"
+
 	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
 	"github.com/Sokol111/ecommerce-commons/pkg/persistence"
 )
@@ -20,6 +22,7 @@ type UpdateAttributeCommand struct {
 	DefaultSearchable bool
 	SortOrder         int
 	Enabled           bool
+	Options           []OptionInput
 }
 
 type UpdateAttributeCommandHandler interface {
@@ -51,6 +54,16 @@ func (h *updateAttributeHandler) Handle(ctx context.Context, cmd UpdateAttribute
 
 	attrType := attribute.AttributeType(cmd.Type)
 
+	options := lo.Map(cmd.Options, func(opt OptionInput, _ int) attribute.Option {
+		return attribute.Option{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: opt.SortOrder,
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	if err := a.Update(
 		cmd.Name,
 		cmd.Slug,
@@ -60,16 +73,17 @@ func (h *updateAttributeHandler) Handle(ctx context.Context, cmd UpdateAttribute
 		cmd.DefaultSearchable,
 		cmd.SortOrder,
 		cmd.Enabled,
+		options,
 	); err != nil {
 		return nil, fmt.Errorf("failed to update attribute: %w", err)
 	}
 
 	updated, err := h.repo.Update(ctx, a)
 	if err != nil {
-		if errors.Is(err, persistence.ErrOptimisticLocking) {
-			return nil, persistence.ErrOptimisticLocking
+		if !errors.Is(err, persistence.ErrOptimisticLocking) {
+			return nil, fmt.Errorf("failed to update attribute: %w", err)
 		}
-		return nil, fmt.Errorf("failed to update attribute: %w", err)
+		return nil, err
 	}
 
 	return updated, nil

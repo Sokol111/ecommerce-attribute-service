@@ -9,6 +9,8 @@ func NewHttpHandlerModule() fx.Option {
 	return fx.Options(
 		fx.Provide(
 			newAttributeHandler,
+			newCategoryAttributeHandler,
+			newCombinedHandler,
 			newStrictHandler,
 			// Provide OpenAPI spec - gin module will auto-register validation middleware
 			httpapi.GetSwagger,

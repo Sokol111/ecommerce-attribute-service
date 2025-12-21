@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/samber/lo"
 
 	"github.com/Sokol111/ecommerce-attribute-service-api/gen/httpapi"
@@ -26,7 +25,7 @@ func newAttributeHandler(
 	updateHandler command.UpdateAttributeCommandHandler,
 	getByIDHandler query.GetAttributeByIDQueryHandler,
 	getListHandler query.GetAttributeListQueryHandler,
-) httpapi.StrictServerInterface {
+) *attributeHandler {
 	return &attributeHandler{
 		createHandler:  createHandler,
 		updateHandler:  updateHandler,
@@ -35,15 +34,21 @@ func newAttributeHandler(
 	}
 }
 
-func uuidPtrToStringPtr(u *openapi_types.UUID) *string {
-	if u == nil {
-		return nil
-	}
-	s := u.String()
-	return &s
-}
-
 func toAttributeResponse(a *attribute.Attribute) httpapi.AttributeResponse {
+	var options *[]httpapi.AttributeOption
+	if len(a.Options) > 0 {
+		opts := lo.Map(a.Options, func(opt attribute.Option, _ int) httpapi.AttributeOption {
+			return httpapi.AttributeOption{
+				Value:     opt.Value,
+				Slug:      opt.Slug,
+				ColorCode: opt.ColorCode,
+				SortOrder: opt.SortOrder,
+				Enabled:   opt.Enabled,
+			}
+		})
+		options = &opts
+	}
+
 	return httpapi.AttributeResponse{
 		Id:                a.ID,
 		Version:           a.Version,
@@ -55,12 +60,23 @@ func toAttributeResponse(a *attribute.Attribute) httpapi.AttributeResponse {
 		DefaultSearchable: a.DefaultSearchable,
 		SortOrder:         a.SortOrder,
 		Enabled:           a.Enabled,
+		Options:           options,
 		CreatedAt:         a.CreatedAt,
 		ModifiedAt:        a.ModifiedAt,
 	}
 }
 
 func (h *attributeHandler) CreateAttribute(c context.Context, request httpapi.CreateAttributeRequestObject) (httpapi.CreateAttributeResponseObject, error) {
+	options := lo.Map(lo.FromPtr(request.Body.Options), func(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
+		return command.OptionInput{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: lo.FromPtrOr(opt.SortOrder, 0),
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	cmd := command.CreateAttributeCommand{
 		ID:                uuidPtrToStringPtr(request.Body.Id),
 		Name:              request.Body.Name,
@@ -71,6 +87,7 @@ func (h *attributeHandler) CreateAttribute(c context.Context, request httpapi.Cr
 		DefaultSearchable: request.Body.DefaultSearchable,
 		SortOrder:         lo.FromPtrOr(request.Body.SortOrder, 0),
 		Enabled:           request.Body.Enabled,
+		Options:           options,
 	}
 
 	created, err := h.createHandler.Handle(c, cmd)
@@ -155,6 +172,16 @@ func (h *attributeHandler) GetAttributeList(c context.Context, request httpapi.G
 }
 
 func (h *attributeHandler) UpdateAttribute(c context.Context, request httpapi.UpdateAttributeRequestObject) (httpapi.UpdateAttributeResponseObject, error) {
+	options := lo.Map(lo.FromPtr(request.Body.Options), func(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
+		return command.OptionInput{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: lo.FromPtrOr(opt.SortOrder, 0),
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	cmd := command.UpdateAttributeCommand{
 		ID:                request.Body.Id.String(),
 		Version:           request.Body.Version,
@@ -166,6 +193,7 @@ func (h *attributeHandler) UpdateAttribute(c context.Context, request httpapi.Up
 		DefaultSearchable: request.Body.DefaultSearchable,
 		SortOrder:         lo.FromPtrOr(request.Body.SortOrder, 0),
 		Enabled:           request.Body.Enabled,
+		Options:           options,
 	}
 
 	updated, err := h.updateHandler.Handle(c, cmd)
@@ -197,42 +225,10 @@ func (h *attributeHandler) UpdateAttribute(c context.Context, request httpapi.Up
 	return httpapi.UpdateAttribute200JSONResponse(toAttributeResponse(updated)), nil
 }
 
-// Stub implementations for other endpoints (not implemented yet)
+// Stub implementation for delete (not implemented yet)
 
 func (h *attributeHandler) DeleteAttribute(c context.Context, request httpapi.DeleteAttributeRequestObject) (httpapi.DeleteAttributeResponseObject, error) {
 	return httpapi.DeleteAttribute500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) AssignAttributeToCategory(c context.Context, request httpapi.AssignAttributeToCategoryRequestObject) (httpapi.AssignAttributeToCategoryResponseObject, error) {
-	return httpapi.AssignAttributeToCategory500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) GetCategoryAttributeList(c context.Context, request httpapi.GetCategoryAttributeListRequestObject) (httpapi.GetCategoryAttributeListResponseObject, error) {
-	return httpapi.GetCategoryAttributeList500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) UnassignAttributeFromCategory(c context.Context, request httpapi.UnassignAttributeFromCategoryRequestObject) (httpapi.UnassignAttributeFromCategoryResponseObject, error) {
-	return httpapi.UnassignAttributeFromCategory500ApplicationProblemPlusJSONResponse{
-		Status: 500,
-		Type:   "about:blank",
-		Title:  "Not implemented",
-	}, nil
-}
-
-func (h *attributeHandler) UpdateCategoryAttribute(c context.Context, request httpapi.UpdateCategoryAttributeRequestObject) (httpapi.UpdateCategoryAttributeResponseObject, error) {
-	return httpapi.UpdateCategoryAttribute500ApplicationProblemPlusJSONResponse{
 		Status: 500,
 		Type:   "about:blank",
 		Title:  "Not implemented",

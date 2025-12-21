@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"github.com/samber/lo"
+
 	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
 )
 
@@ -11,6 +13,16 @@ func newAttributeMapper() *attributeMapper {
 }
 
 func (m *attributeMapper) ToEntity(a *attribute.Attribute) *attributeEntity {
+	options := lo.Map(a.Options, func(opt attribute.Option, _ int) optionEntity {
+		return optionEntity{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: opt.SortOrder,
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	return &attributeEntity{
 		ID:                a.ID,
 		Version:           a.Version,
@@ -22,12 +34,23 @@ func (m *attributeMapper) ToEntity(a *attribute.Attribute) *attributeEntity {
 		DefaultSearchable: a.DefaultSearchable,
 		SortOrder:         a.SortOrder,
 		Enabled:           a.Enabled,
+		Options:           options,
 		CreatedAt:         a.CreatedAt,
 		ModifiedAt:        a.ModifiedAt,
 	}
 }
 
 func (m *attributeMapper) ToDomain(e *attributeEntity) *attribute.Attribute {
+	options := lo.Map(e.Options, func(opt optionEntity, _ int) attribute.Option {
+		return attribute.Option{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: opt.SortOrder,
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	return attribute.Reconstruct(
 		e.ID,
 		e.Version,
@@ -39,6 +62,7 @@ func (m *attributeMapper) ToDomain(e *attributeEntity) *attribute.Attribute {
 		e.DefaultSearchable,
 		e.SortOrder,
 		e.Enabled,
+		options,
 		e.CreatedAt.UTC(),
 		e.ModifiedAt.UTC(),
 	)

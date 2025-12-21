@@ -9,6 +9,14 @@ import (
 	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
 )
 
+type OptionInput struct {
+	Value     string
+	Slug      string
+	ColorCode *string
+	SortOrder int
+	Enabled   bool
+}
+
 type CreateAttributeCommand struct {
 	ID                *string
 	Name              string
@@ -19,6 +27,7 @@ type CreateAttributeCommand struct {
 	DefaultSearchable bool
 	SortOrder         int
 	Enabled           bool
+	Options           []OptionInput
 }
 
 type CreateAttributeCommandHandler interface {
@@ -36,6 +45,16 @@ func NewCreateAttributeHandler(repo attribute.Repository) CreateAttributeCommand
 }
 
 func (h *createAttributeHandler) Handle(ctx context.Context, cmd CreateAttributeCommand) (*attribute.Attribute, error) {
+	options := lo.Map(cmd.Options, func(opt OptionInput, _ int) attribute.Option {
+		return attribute.Option{
+			Value:     opt.Value,
+			Slug:      opt.Slug,
+			ColorCode: opt.ColorCode,
+			SortOrder: opt.SortOrder,
+			Enabled:   opt.Enabled,
+		}
+	})
+
 	a, err := attribute.NewAttribute(
 		lo.FromPtrOr(cmd.ID, ""),
 		cmd.Name,
@@ -46,6 +65,7 @@ func (h *createAttributeHandler) Handle(ctx context.Context, cmd CreateAttribute
 		cmd.DefaultSearchable,
 		cmd.SortOrder,
 		cmd.Enabled,
+		options,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create attribute: %w", err)

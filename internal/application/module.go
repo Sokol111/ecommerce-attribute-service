@@ -13,11 +13,15 @@ func Module() fx.Option {
 		fx.Provide(
 			command.NewCreateAttributeHandler,
 			command.NewUpdateAttributeHandler,
+			command.NewAssignAttributeToCategoryHandler,
+			command.NewUpdateCategoryAttributeHandler,
+			command.NewUnassignAttributeFromCategoryHandler,
 		),
 		// Query handlers
 		fx.Provide(
 			query.NewGetAttributeByIDHandler,
 			query.NewGetAttributeListHandler,
+			query.NewGetCategoryAttributeListHandler,
 		),
 	)
 }

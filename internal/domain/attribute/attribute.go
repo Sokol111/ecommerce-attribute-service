@@ -19,6 +19,15 @@ const (
 	AttributeTypeText        AttributeType = "text"
 )
 
+// Option represents an attribute option (embedded in Attribute)
+type Option struct {
+	Value     string
+	Slug      string
+	ColorCode *string
+	SortOrder int
+	Enabled   bool
+}
+
 // Attribute - domain aggregate root
 type Attribute struct {
 	ID                string
@@ -31,6 +40,7 @@ type Attribute struct {
 	DefaultSearchable bool
 	SortOrder         int
 	Enabled           bool
+	Options           []Option
 	CreatedAt         time.Time
 	ModifiedAt        time.Time
 }
@@ -49,8 +59,13 @@ func NewAttribute(
 	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
+	options []Option,
 ) (*Attribute, error) {
 	if err := validateAttributeData(name, slug, attrType, sortOrder); err != nil {
+		return nil, err
+	}
+
+	if err := validateOptions(options); err != nil {
 		return nil, err
 	}
 
@@ -70,6 +85,7 @@ func NewAttribute(
 		DefaultSearchable: defaultSearchable,
 		SortOrder:         sortOrder,
 		Enabled:           enabled,
+		Options:           options,
 		CreatedAt:         now,
 		ModifiedAt:        now,
 	}, nil
@@ -87,6 +103,7 @@ func Reconstruct(
 	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
+	options []Option,
 	createdAt time.Time,
 	modifiedAt time.Time,
 ) *Attribute {
@@ -101,6 +118,7 @@ func Reconstruct(
 		DefaultSearchable: defaultSearchable,
 		SortOrder:         sortOrder,
 		Enabled:           enabled,
+		Options:           options,
 		CreatedAt:         createdAt,
 		ModifiedAt:        modifiedAt,
 	}
@@ -116,8 +134,13 @@ func (a *Attribute) Update(
 	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
+	options []Option,
 ) error {
 	if err := validateAttributeData(name, slug, attrType, sortOrder); err != nil {
+		return err
+	}
+
+	if err := validateOptions(options); err != nil {
 		return err
 	}
 
@@ -129,6 +152,7 @@ func (a *Attribute) Update(
 	a.DefaultSearchable = defaultSearchable
 	a.SortOrder = sortOrder
 	a.Enabled = enabled
+	a.Options = options
 	a.ModifiedAt = time.Now().UTC()
 
 	return nil
@@ -173,4 +197,38 @@ func isValidAttributeType(t AttributeType) bool {
 		return true
 	}
 	return false
+}
+
+// validateOptions validates option data
+func validateOptions(options []Option) error {
+	if len(options) == 0 {
+		return nil
+	}
+
+	slugs := make(map[string]bool)
+	for _, opt := range options {
+		if opt.Value == "" {
+			return errors.New("option value is required")
+		}
+		if len(opt.Value) > 100 {
+			return errors.New("option value is too long (max 100 characters)")
+		}
+		if opt.Slug == "" {
+			return errors.New("option slug is required")
+		}
+		if len(opt.Slug) > 50 {
+			return errors.New("option slug is too long (max 50 characters)")
+		}
+		if !slugRegex.MatchString(opt.Slug) {
+			return errors.New("option slug must contain only lowercase letters, numbers, and hyphens")
+		}
+		if slugs[opt.Slug] {
+			return errors.New("duplicate option slug: " + opt.Slug)
+		}
+		slugs[opt.Slug] = true
+		if opt.SortOrder < 0 {
+			return errors.New("option sortOrder cannot be negative")
+		}
+	}
+	return nil
 }
