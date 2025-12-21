@@ -1,0 +1,27 @@
+[
+    {
+        "dropIndexes": "attribute",
+        "index": [
+            "attribute_slug_unique_v1",
+            "attribute_enabled_v1",
+            "attribute_type_v1",
+            "attribute_sortOrder_v1"
+        ],
+        "writeConcern": {
+            "w": "majority"
+        }
+    },
+    {
+        "dropIndexes": "category_attribute",
+        "index": [
+            "ca_categoryId_attributeId_unique_v1",
+            "ca_categoryId_v1",
+            "ca_attributeId_v1",
+            "ca_enabled_v1",
+            "ca_sortOrder_v1"
+        ],
+        "writeConcern": {
+            "w": "majority"
+        }
+    }
+]

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
-	"github.com/Sokol111/ecommerce-commons/pkg/persistence"
 	commonsmongo "github.com/Sokol111/ecommerce-commons/pkg/persistence/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,27 +29,6 @@ func newAttributeRepository(mongoClient commonsmongo.Mongo, mapper *attributeMap
 		GenericRepository: genericRepo,
 		collection:        collection,
 	}, nil
-}
-
-func (r *attributeRepository) FindBySlug(ctx context.Context, slug string) (*attribute.Attribute, error) {
-	filter := bson.D{{Key: "slug", Value: slug}}
-
-	opts := commonsmongo.QueryOptions{
-		Filter: filter,
-		Page:   1,
-		Size:   1,
-	}
-
-	result, err := r.FindWithOptions(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(result.Items) == 0 {
-		return nil, persistence.ErrEntityNotFound
-	}
-
-	return result.Items[0], nil
 }
 
 func (r *attributeRepository) FindList(ctx context.Context, query attribute.ListQuery) (*commonsmongo.PageResult[attribute.Attribute], error) {
