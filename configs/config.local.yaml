@@ -4,8 +4,6 @@ logger:
 
 server:
   port: 8080
-  timeout:
-    enabled: true
 
 mongo:
   host: "mongo"
