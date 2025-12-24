@@ -18,16 +18,14 @@ type OptionInput struct {
 }
 
 type CreateAttributeCommand struct {
-	ID                *string
-	Name              string
-	Slug              string
-	Type              string
-	Unit              *string
-	DefaultFilterable bool
-	DefaultSearchable bool
-	SortOrder         int
-	Enabled           bool
-	Options           []OptionInput
+	ID        *string
+	Name      string
+	Slug      string
+	Type      string
+	Unit      *string
+	SortOrder int
+	Enabled   bool
+	Options   []OptionInput
 }
 
 type CreateAttributeCommandHandler interface {
@@ -61,8 +59,6 @@ func (h *createAttributeHandler) Handle(ctx context.Context, cmd CreateAttribute
 		cmd.Slug,
 		attribute.AttributeType(cmd.Type),
 		cmd.Unit,
-		cmd.DefaultFilterable,
-		cmd.DefaultSearchable,
 		cmd.SortOrder,
 		cmd.Enabled,
 		options,

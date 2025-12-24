@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/samber/lo"
 
 	"github.com/Sokol111/ecommerce-attribute-service-api/gen/httpapi"
@@ -25,13 +26,21 @@ func newAttributeHandler(
 	updateHandler command.UpdateAttributeCommandHandler,
 	getByIDHandler query.GetAttributeByIDQueryHandler,
 	getListHandler query.GetAttributeListQueryHandler,
-) *attributeHandler {
+) httpapi.StrictServerInterface {
 	return &attributeHandler{
 		createHandler:  createHandler,
 		updateHandler:  updateHandler,
 		getByIDHandler: getByIDHandler,
 		getListHandler: getListHandler,
 	}
+}
+
+func uuidPtrToStringPtr(u *openapi_types.UUID) *string {
+	if u == nil {
+		return nil
+	}
+	s := u.String()
+	return &s
 }
 
 func toAttributeResponse(a *attribute.Attribute) httpapi.AttributeResponse {
@@ -50,19 +59,17 @@ func toAttributeResponse(a *attribute.Attribute) httpapi.AttributeResponse {
 	}
 
 	return httpapi.AttributeResponse{
-		Id:                a.ID,
-		Version:           a.Version,
-		Name:              a.Name,
-		Slug:              a.Slug,
-		Type:              httpapi.AttributeResponseType(a.Type),
-		Unit:              a.Unit,
-		DefaultFilterable: a.DefaultFilterable,
-		DefaultSearchable: a.DefaultSearchable,
-		SortOrder:         a.SortOrder,
-		Enabled:           a.Enabled,
-		Options:           options,
-		CreatedAt:         a.CreatedAt,
-		ModifiedAt:        a.ModifiedAt,
+		Id:         a.ID,
+		Version:    a.Version,
+		Name:       a.Name,
+		Slug:       a.Slug,
+		Type:       httpapi.AttributeResponseType(a.Type),
+		Unit:       a.Unit,
+		SortOrder:  a.SortOrder,
+		Enabled:    a.Enabled,
+		Options:    options,
+		CreatedAt:  a.CreatedAt,
+		ModifiedAt: a.ModifiedAt,
 	}
 }
 
@@ -78,16 +85,14 @@ func (h *attributeHandler) CreateAttribute(c context.Context, request httpapi.Cr
 	})
 
 	cmd := command.CreateAttributeCommand{
-		ID:                uuidPtrToStringPtr(request.Body.Id),
-		Name:              request.Body.Name,
-		Slug:              request.Body.Slug,
-		Type:              string(request.Body.Type),
-		Unit:              request.Body.Unit,
-		DefaultFilterable: request.Body.DefaultFilterable,
-		DefaultSearchable: request.Body.DefaultSearchable,
-		SortOrder:         lo.FromPtrOr(request.Body.SortOrder, 0),
-		Enabled:           request.Body.Enabled,
-		Options:           options,
+		ID:        uuidPtrToStringPtr(request.Body.Id),
+		Name:      request.Body.Name,
+		Slug:      request.Body.Slug,
+		Type:      string(request.Body.Type),
+		Unit:      request.Body.Unit,
+		SortOrder: lo.FromPtrOr(request.Body.SortOrder, 0),
+		Enabled:   request.Body.Enabled,
+		Options:   options,
 	}
 
 	created, err := h.createHandler.Handle(c, cmd)
@@ -183,17 +188,15 @@ func (h *attributeHandler) UpdateAttribute(c context.Context, request httpapi.Up
 	})
 
 	cmd := command.UpdateAttributeCommand{
-		ID:                request.Body.Id.String(),
-		Version:           request.Body.Version,
-		Name:              request.Body.Name,
-		Slug:              request.Body.Slug,
-		Type:              string(request.Body.Type),
-		Unit:              request.Body.Unit,
-		DefaultFilterable: request.Body.DefaultFilterable,
-		DefaultSearchable: request.Body.DefaultSearchable,
-		SortOrder:         lo.FromPtrOr(request.Body.SortOrder, 0),
-		Enabled:           request.Body.Enabled,
-		Options:           options,
+		ID:        request.Body.Id.String(),
+		Version:   request.Body.Version,
+		Name:      request.Body.Name,
+		Slug:      request.Body.Slug,
+		Type:      string(request.Body.Type),
+		Unit:      request.Body.Unit,
+		SortOrder: lo.FromPtrOr(request.Body.SortOrder, 0),
+		Enabled:   request.Body.Enabled,
+		Options:   options,
 	}
 
 	updated, err := h.updateHandler.Handle(c, cmd)

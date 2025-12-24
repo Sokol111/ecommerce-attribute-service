@@ -24,19 +24,17 @@ func (m *attributeMapper) ToEntity(a *attribute.Attribute) *attributeEntity {
 	})
 
 	return &attributeEntity{
-		ID:                a.ID,
-		Version:           a.Version,
-		Name:              a.Name,
-		Slug:              a.Slug,
-		Type:              string(a.Type),
-		Unit:              a.Unit,
-		DefaultFilterable: a.DefaultFilterable,
-		DefaultSearchable: a.DefaultSearchable,
-		SortOrder:         a.SortOrder,
-		Enabled:           a.Enabled,
-		Options:           options,
-		CreatedAt:         a.CreatedAt,
-		ModifiedAt:        a.ModifiedAt,
+		ID:         a.ID,
+		Version:    a.Version,
+		Name:       a.Name,
+		Slug:       a.Slug,
+		Type:       string(a.Type),
+		Unit:       a.Unit,
+		SortOrder:  a.SortOrder,
+		Enabled:    a.Enabled,
+		Options:    options,
+		CreatedAt:  a.CreatedAt,
+		ModifiedAt: a.ModifiedAt,
 	}
 }
 
@@ -58,8 +56,6 @@ func (m *attributeMapper) ToDomain(e *attributeEntity) *attribute.Attribute {
 		e.Slug,
 		attribute.AttributeType(e.Type),
 		e.Unit,
-		e.DefaultFilterable,
-		e.DefaultSearchable,
 		e.SortOrder,
 		e.Enabled,
 		options,

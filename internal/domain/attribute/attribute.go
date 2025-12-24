@@ -30,19 +30,17 @@ type Option struct {
 
 // Attribute - domain aggregate root
 type Attribute struct {
-	ID                string
-	Version           int
-	Name              string
-	Slug              string
-	Type              AttributeType
-	Unit              *string
-	DefaultFilterable bool
-	DefaultSearchable bool
-	SortOrder         int
-	Enabled           bool
-	Options           []Option
-	CreatedAt         time.Time
-	ModifiedAt        time.Time
+	ID         string
+	Version    int
+	Name       string
+	Slug       string
+	Type       AttributeType
+	Unit       *string
+	SortOrder  int
+	Enabled    bool
+	Options    []Option
+	CreatedAt  time.Time
+	ModifiedAt time.Time
 }
 
 var slugRegex = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
@@ -55,8 +53,6 @@ func NewAttribute(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	defaultFilterable bool,
-	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
 	options []Option,
@@ -75,19 +71,17 @@ func NewAttribute(
 
 	now := time.Now().UTC()
 	return &Attribute{
-		ID:                id,
-		Version:           1,
-		Name:              name,
-		Slug:              slug,
-		Type:              attrType,
-		Unit:              unit,
-		DefaultFilterable: defaultFilterable,
-		DefaultSearchable: defaultSearchable,
-		SortOrder:         sortOrder,
-		Enabled:           enabled,
-		Options:           options,
-		CreatedAt:         now,
-		ModifiedAt:        now,
+		ID:         id,
+		Version:    1,
+		Name:       name,
+		Slug:       slug,
+		Type:       attrType,
+		Unit:       unit,
+		SortOrder:  sortOrder,
+		Enabled:    enabled,
+		Options:    options,
+		CreatedAt:  now,
+		ModifiedAt: now,
 	}, nil
 }
 
@@ -99,8 +93,6 @@ func Reconstruct(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	defaultFilterable bool,
-	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
 	options []Option,
@@ -108,19 +100,17 @@ func Reconstruct(
 	modifiedAt time.Time,
 ) *Attribute {
 	return &Attribute{
-		ID:                id,
-		Version:           version,
-		Name:              name,
-		Slug:              slug,
-		Type:              attrType,
-		Unit:              unit,
-		DefaultFilterable: defaultFilterable,
-		DefaultSearchable: defaultSearchable,
-		SortOrder:         sortOrder,
-		Enabled:           enabled,
-		Options:           options,
-		CreatedAt:         createdAt,
-		ModifiedAt:        modifiedAt,
+		ID:         id,
+		Version:    version,
+		Name:       name,
+		Slug:       slug,
+		Type:       attrType,
+		Unit:       unit,
+		SortOrder:  sortOrder,
+		Enabled:    enabled,
+		Options:    options,
+		CreatedAt:  createdAt,
+		ModifiedAt: modifiedAt,
 	}
 }
 
@@ -130,8 +120,6 @@ func (a *Attribute) Update(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	defaultFilterable bool,
-	defaultSearchable bool,
 	sortOrder int,
 	enabled bool,
 	options []Option,
@@ -148,8 +136,6 @@ func (a *Attribute) Update(
 	a.Slug = slug
 	a.Type = attrType
 	a.Unit = unit
-	a.DefaultFilterable = defaultFilterable
-	a.DefaultSearchable = defaultSearchable
 	a.SortOrder = sortOrder
 	a.Enabled = enabled
 	a.Options = options
