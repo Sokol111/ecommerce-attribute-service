@@ -12,11 +12,11 @@ import (
 type AttributeType string
 
 const (
-	AttributeTypeSelect      AttributeType = "select"
-	AttributeTypeMultiselect AttributeType = "multiselect"
-	AttributeTypeRange       AttributeType = "range"
-	AttributeTypeBoolean     AttributeType = "boolean"
-	AttributeTypeText        AttributeType = "text"
+	AttributeTypeSingle   AttributeType = "single"
+	AttributeTypeMultiple AttributeType = "multiple"
+	AttributeTypeRange    AttributeType = "range"
+	AttributeTypeBoolean  AttributeType = "boolean"
+	AttributeTypeText     AttributeType = "text"
 )
 
 // Option represents an attribute option (embedded in Attribute)
@@ -179,7 +179,7 @@ func validateAttributeData(name string, slug string, attrType AttributeType, sor
 
 func isValidAttributeType(t AttributeType) bool {
 	switch t {
-	case AttributeTypeSelect, AttributeTypeMultiselect, AttributeTypeRange, AttributeTypeBoolean, AttributeTypeText:
+	case AttributeTypeSingle, AttributeTypeMultiple, AttributeTypeRange, AttributeTypeBoolean, AttributeTypeText:
 		return true
 	}
 	return false
