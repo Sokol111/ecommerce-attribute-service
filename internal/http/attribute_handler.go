@@ -3,8 +3,8 @@ package http
 import (
 	"context"
 	"errors"
+	"net/url"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/samber/lo"
 
 	"github.com/Sokol111/ecommerce-attribute-service-api/gen/httpapi"
@@ -26,7 +26,7 @@ func newAttributeHandler(
 	updateHandler command.UpdateAttributeCommandHandler,
 	getByIDHandler query.GetAttributeByIDQueryHandler,
 	getListHandler query.GetAttributeListQueryHandler,
-) httpapi.StrictServerInterface {
+) httpapi.Handler {
 	return &attributeHandler{
 		createHandler:  createHandler,
 		updateHandler:  updateHandler,
@@ -35,89 +35,86 @@ func newAttributeHandler(
 	}
 }
 
-func uuidPtrToStringPtr(u *openapi_types.UUID) *string {
-	if u == nil {
-		return nil
+var aboutBlankURL, _ = url.Parse("about:blank")
+
+func toOptString(s *string) httpapi.OptString {
+	if s == nil {
+		return httpapi.OptString{}
 	}
-	s := u.String()
-	return &s
+	return httpapi.NewOptString(*s)
 }
 
-func toAttributeResponse(a *attribute.Attribute) httpapi.AttributeResponse {
-	var options *[]httpapi.AttributeOption
-	if len(a.Options) > 0 {
-		opts := lo.Map(a.Options, func(opt attribute.Option, _ int) httpapi.AttributeOption {
-			return httpapi.AttributeOption{
-				Value:     opt.Value,
-				Slug:      opt.Slug,
-				ColorCode: opt.ColorCode,
-				SortOrder: opt.SortOrder,
-				Enabled:   opt.Enabled,
-			}
-		})
-		options = &opts
+func toAttributeOptionResponse(opt attribute.Option, _ int) httpapi.AttributeOption {
+	return httpapi.AttributeOption{
+		Value:     opt.Value,
+		Slug:      opt.Slug,
+		ColorCode: toOptString(opt.ColorCode),
+		SortOrder: opt.SortOrder,
+		Enabled:   opt.Enabled,
 	}
+}
 
-	return httpapi.AttributeResponse{
-		Id:         a.ID,
+func toAttributeResponse(a *attribute.Attribute) *httpapi.AttributeResponse {
+	return &httpapi.AttributeResponse{
+		ID:         a.ID,
 		Version:    a.Version,
 		Name:       a.Name,
 		Slug:       a.Slug,
 		Type:       httpapi.AttributeResponseType(a.Type),
-		Unit:       a.Unit,
+		Unit:       toOptString(a.Unit),
 		SortOrder:  a.SortOrder,
 		Enabled:    a.Enabled,
-		Options:    options,
+		Options:    lo.Map(a.Options, toAttributeOptionResponse),
 		CreatedAt:  a.CreatedAt,
 		ModifiedAt: a.ModifiedAt,
 	}
 }
 
-func (h *attributeHandler) CreateAttribute(c context.Context, request httpapi.CreateAttributeRequestObject) (httpapi.CreateAttributeResponseObject, error) {
-	options := lo.Map(lo.FromPtr(request.Body.Options), func(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
-		return command.OptionInput{
-			Value:     opt.Value,
-			Slug:      opt.Slug,
-			ColorCode: opt.ColorCode,
-			SortOrder: lo.FromPtrOr(opt.SortOrder, 0),
-			Enabled:   opt.Enabled,
-		}
-	})
+func toOptionInput(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
+	return command.OptionInput{
+		Value:     opt.Value,
+		Slug:      opt.Slug,
+		ColorCode: lo.If(opt.ColorCode.IsSet(), &opt.ColorCode.Value).Else(nil),
+		SortOrder: opt.SortOrder.Or(0),
+		Enabled:   opt.Enabled,
+	}
+}
 
+func (h *attributeHandler) CreateAttribute(ctx context.Context, req *httpapi.CreateAttributeReq) (httpapi.CreateAttributeRes, error) {
 	cmd := command.CreateAttributeCommand{
-		ID:        uuidPtrToStringPtr(request.Body.Id),
-		Name:      request.Body.Name,
-		Slug:      request.Body.Slug,
-		Type:      string(request.Body.Type),
-		Unit:      request.Body.Unit,
-		SortOrder: lo.FromPtrOr(request.Body.SortOrder, 0),
-		Enabled:   request.Body.Enabled,
-		Options:   options,
+		ID:        lo.If(req.ID.IsSet(), &req.ID.Value).Else(nil),
+		Name:      req.Name,
+		Slug:      req.Slug,
+		Type:      string(req.Type),
+		Unit:      lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
+		SortOrder: req.SortOrder.Or(0),
+		Enabled:   req.Enabled,
+		Options:   lo.Map(req.Options, toOptionInput),
 	}
 
-	created, err := h.createHandler.Handle(c, cmd)
+	created, err := h.createHandler.Handle(ctx, cmd)
 	if err != nil {
 		if errors.Is(err, attribute.ErrSlugAlreadyExists) {
-			return httpapi.CreateAttribute409ApplicationProblemPlusJSONResponse{
+			return &httpapi.CreateAttributeConflict{
 				Status: 409,
-				Type:   "about:blank",
+				Type:   *aboutBlankURL,
 				Title:  "Attribute with this slug already exists",
 			}, nil
 		}
 		return nil, err
 	}
 
-	return httpapi.CreateAttribute200JSONResponse(toAttributeResponse(created)), nil
+	return toAttributeResponse(created), nil
 }
 
-func (h *attributeHandler) GetAttributeById(c context.Context, request httpapi.GetAttributeByIdRequestObject) (httpapi.GetAttributeByIdResponseObject, error) {
-	q := query.GetAttributeByIDQuery{ID: request.Id}
+func (h *attributeHandler) GetAttributeById(ctx context.Context, params httpapi.GetAttributeByIdParams) (httpapi.GetAttributeByIdRes, error) {
+	q := query.GetAttributeByIDQuery{ID: params.ID}
 
-	found, err := h.getByIDHandler.Handle(c, q)
+	found, err := h.getByIDHandler.Handle(ctx, q)
 	if errors.Is(err, persistence.ErrEntityNotFound) {
-		return httpapi.GetAttributeById404ApplicationProblemPlusJSONResponse{
+		return &httpapi.GetAttributeByIdNotFound{
 			Status: 404,
-			Type:   "about:blank",
+			Type:   *aboutBlankURL,
 			Title:  "Attribute not found",
 		}, nil
 	}
@@ -125,115 +122,91 @@ func (h *attributeHandler) GetAttributeById(c context.Context, request httpapi.G
 		return nil, err
 	}
 
-	return httpapi.GetAttributeById200JSONResponse(toAttributeResponse(found)), nil
+	return toAttributeResponse(found), nil
 }
 
-func (h *attributeHandler) GetAttributeList(c context.Context, request httpapi.GetAttributeListRequestObject) (httpapi.GetAttributeListResponseObject, error) {
-	// Default sort and order
-	sort := "sortOrder"
-	order := "asc"
-
-	// Override with request params if provided
-	if request.Params.Sort != nil {
-		sort = string(*request.Params.Sort)
-	}
-
-	if request.Params.Order != nil {
-		order = string(*request.Params.Order)
-	}
-
+func (h *attributeHandler) GetAttributeList(ctx context.Context, params httpapi.GetAttributeListParams) (httpapi.GetAttributeListRes, error) {
 	var attrType *string
-	if request.Params.Type != nil {
-		t := string(*request.Params.Type)
+	if params.Type.IsSet() {
+		t := string(params.Type.Value)
 		attrType = &t
 	}
 
-	q := query.GetAttributeListQuery{
-		Page:    request.Params.Page,
-		Size:    request.Params.Size,
-		Enabled: request.Params.Enabled,
-		Type:    attrType,
-		Sort:    sort,
-		Order:   order,
+	var enabled *bool
+	if params.Enabled.IsSet() {
+		enabled = &params.Enabled.Value
 	}
 
-	result, err := h.getListHandler.Handle(c, q)
+	q := query.GetAttributeListQuery{
+		Page:    params.Page,
+		Size:    params.Size,
+		Enabled: enabled,
+		Type:    attrType,
+		Sort:    string(params.Sort.Or(httpapi.GetAttributeListSortSortOrder)),
+		Order:   string(params.Order.Or(httpapi.GetAttributeListOrderAsc)),
+	}
+
+	result, err := h.getListHandler.Handle(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 
-	response := httpapi.GetAttributeList200JSONResponse{
-		Items: make([]httpapi.AttributeResponse, 0, len(result.Items)),
+	return &httpapi.AttributeListResponse{
+		Items: lo.Map(result.Items, func(a *attribute.Attribute, _ int) httpapi.AttributeResponse {
+			return *toAttributeResponse(a)
+		}),
 		Page:  result.Page,
 		Size:  result.Size,
 		Total: int(result.Total),
-	}
-
-	for _, a := range result.Items {
-		response.Items = append(response.Items, toAttributeResponse(a))
-	}
-
-	return response, nil
+	}, nil
 }
 
-func (h *attributeHandler) UpdateAttribute(c context.Context, request httpapi.UpdateAttributeRequestObject) (httpapi.UpdateAttributeResponseObject, error) {
-	options := lo.Map(lo.FromPtr(request.Body.Options), func(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
-		return command.OptionInput{
-			Value:     opt.Value,
-			Slug:      opt.Slug,
-			ColorCode: opt.ColorCode,
-			SortOrder: lo.FromPtrOr(opt.SortOrder, 0),
-			Enabled:   opt.Enabled,
-		}
-	})
-
+func (h *attributeHandler) UpdateAttribute(ctx context.Context, req *httpapi.UpdateAttributeReq) (httpapi.UpdateAttributeRes, error) {
 	cmd := command.UpdateAttributeCommand{
-		ID:        request.Body.Id.String(),
-		Version:   request.Body.Version,
-		Name:      request.Body.Name,
-		Slug:      request.Body.Slug,
-		Type:      string(request.Body.Type),
-		Unit:      request.Body.Unit,
-		SortOrder: lo.FromPtrOr(request.Body.SortOrder, 0),
-		Enabled:   request.Body.Enabled,
-		Options:   options,
+		ID:        req.ID.String(),
+		Version:   req.Version,
+		Name:      req.Name,
+		Slug:      req.Slug,
+		Type:      string(req.Type),
+		Unit:      lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
+		SortOrder: req.SortOrder.Or(0),
+		Enabled:   req.Enabled,
+		Options:   lo.Map(req.Options, toOptionInput),
 	}
 
-	updated, err := h.updateHandler.Handle(c, cmd)
+	updated, err := h.updateHandler.Handle(ctx, cmd)
 	if err != nil {
 		if errors.Is(err, persistence.ErrEntityNotFound) {
-			return httpapi.UpdateAttribute404ApplicationProblemPlusJSONResponse{
+			return &httpapi.UpdateAttributeNotFound{
 				Status: 404,
-				Type:   "about:blank",
+				Type:   *aboutBlankURL,
 				Title:  "Attribute not found",
 			}, nil
 		}
 		if errors.Is(err, persistence.ErrOptimisticLocking) {
-			return httpapi.UpdateAttribute412ApplicationProblemPlusJSONResponse{
+			return &httpapi.UpdateAttributePreconditionFailed{
 				Status: 412,
-				Type:   "about:blank",
+				Type:   *aboutBlankURL,
 				Title:  "Version mismatch",
 			}, nil
 		}
 		if errors.Is(err, attribute.ErrSlugAlreadyExists) {
-			return httpapi.UpdateAttribute409ApplicationProblemPlusJSONResponse{
+			return &httpapi.UpdateAttributeConflict{
 				Status: 409,
-				Type:   "about:blank",
+				Type:   *aboutBlankURL,
 				Title:  "Attribute with this slug already exists",
 			}, nil
 		}
 		return nil, err
 	}
 
-	return httpapi.UpdateAttribute200JSONResponse(toAttributeResponse(updated)), nil
+	return toAttributeResponse(updated), nil
 }
 
-// Stub implementation for delete (not implemented yet)
-
-func (h *attributeHandler) DeleteAttribute(c context.Context, request httpapi.DeleteAttributeRequestObject) (httpapi.DeleteAttributeResponseObject, error) {
-	return httpapi.DeleteAttribute500ApplicationProblemPlusJSONResponse{
+func (h *attributeHandler) DeleteAttribute(ctx context.Context, params httpapi.DeleteAttributeParams) (httpapi.DeleteAttributeRes, error) {
+	return &httpapi.DeleteAttributeInternalServerError{
 		Status: 500,
-		Type:   "about:blank",
+		Type:   *aboutBlankURL,
 		Title:  "Not implemented",
 	}, nil
 }

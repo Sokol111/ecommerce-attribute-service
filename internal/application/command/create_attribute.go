@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	"github.com/Sokol111/ecommerce-attribute-service/internal/domain/attribute"
@@ -18,7 +19,7 @@ type OptionInput struct {
 }
 
 type CreateAttributeCommand struct {
-	ID        *string
+	ID        *uuid.UUID
 	Name      string
 	Slug      string
 	Type      string
@@ -53,8 +54,13 @@ func (h *createAttributeHandler) Handle(ctx context.Context, cmd CreateAttribute
 		}
 	})
 
+	var id string
+	if cmd.ID != nil {
+		id = cmd.ID.String()
+	}
+
 	a, err := attribute.NewAttribute(
-		lo.FromPtrOr(cmd.ID, ""),
+		id,
 		cmd.Name,
 		cmd.Slug,
 		attribute.AttributeType(cmd.Type),
