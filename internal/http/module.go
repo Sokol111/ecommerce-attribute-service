@@ -27,7 +27,9 @@ func newOgenServer(handler httpapi.Handler, tracerProvider trace.TracerProvider,
 }
 
 func registerOgenRoutes(engine *gin.Engine, server *httpapi.Server) {
-	// Mount ogen server under /v1/attribute/* path
-	// All gin middlewares (logging, recovery, etc.) will be applied
-	engine.Any("/v1/attribute/*path", gin.WrapH(server))
+	// Mount ogen server for API versioned paths only
+	// This avoids conflicts with health routes (/health/ready, /health/live)
+	engine.Any("/v1/*path", gin.WrapH(server))
+	// Add more versions as needed:
+	// engine.Any("/v2/*path", gin.WrapH(server))
 }
