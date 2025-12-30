@@ -46,7 +46,7 @@ func toOptString(s *string) httpapi.OptString {
 
 func toAttributeOptionResponse(opt attribute.Option, _ int) httpapi.AttributeOption {
 	return httpapi.AttributeOption{
-		Value:     opt.Value,
+		Name:      opt.Name,
 		Slug:      opt.Slug,
 		ColorCode: toOptString(opt.ColorCode),
 		SortOrder: opt.SortOrder,
@@ -72,7 +72,7 @@ func toAttributeResponse(a *attribute.Attribute) *httpapi.AttributeResponse {
 
 func toOptionInput(opt httpapi.AttributeOptionInput, _ int) command.OptionInput {
 	return command.OptionInput{
-		Value:     opt.Value,
+		Name:      opt.Name,
 		Slug:      opt.Slug,
 		ColorCode: lo.If(opt.ColorCode.IsSet(), &opt.ColorCode.Value).Else(nil),
 		SortOrder: opt.SortOrder.Or(0),

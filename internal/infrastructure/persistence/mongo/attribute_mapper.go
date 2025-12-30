@@ -15,7 +15,7 @@ func newAttributeMapper() *attributeMapper {
 func (m *attributeMapper) ToEntity(a *attribute.Attribute) *attributeEntity {
 	options := lo.Map(a.Options, func(opt attribute.Option, _ int) optionEntity {
 		return optionEntity{
-			Value:     opt.Value,
+			Name:      opt.Name,
 			Slug:      opt.Slug,
 			ColorCode: opt.ColorCode,
 			SortOrder: opt.SortOrder,
@@ -41,7 +41,7 @@ func (m *attributeMapper) ToEntity(a *attribute.Attribute) *attributeEntity {
 func (m *attributeMapper) ToDomain(e *attributeEntity) *attribute.Attribute {
 	options := lo.Map(e.Options, func(opt optionEntity, _ int) attribute.Option {
 		return attribute.Option{
-			Value:     opt.Value,
+			Name:      opt.Name,
 			Slug:      opt.Slug,
 			ColorCode: opt.ColorCode,
 			SortOrder: opt.SortOrder,

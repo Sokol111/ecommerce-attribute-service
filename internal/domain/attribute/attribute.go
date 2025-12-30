@@ -21,7 +21,7 @@ const (
 
 // Option represents an attribute option (embedded in Attribute)
 type Option struct {
-	Value     string
+	Name      string
 	Slug      string
 	ColorCode *string
 	SortOrder int
@@ -193,11 +193,11 @@ func validateOptions(options []Option) error {
 
 	slugs := make(map[string]bool)
 	for _, opt := range options {
-		if opt.Value == "" {
-			return errors.New("option value is required")
+		if opt.Name == "" {
+			return errors.New("option name is required")
 		}
-		if len(opt.Value) > 100 {
-			return errors.New("option value is too long (max 100 characters)")
+		if len(opt.Name) > 100 {
+			return errors.New("option name is too long (max 100 characters)")
 		}
 		if opt.Slug == "" {
 			return errors.New("option slug is required")

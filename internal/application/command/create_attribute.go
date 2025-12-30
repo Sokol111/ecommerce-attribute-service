@@ -11,7 +11,7 @@ import (
 )
 
 type OptionInput struct {
-	Value     string
+	Name      string
 	Slug      string
 	ColorCode *string
 	SortOrder int
@@ -46,7 +46,7 @@ func NewCreateAttributeHandler(repo attribute.Repository) CreateAttributeCommand
 func (h *createAttributeHandler) Handle(ctx context.Context, cmd CreateAttributeCommand) (*attribute.Attribute, error) {
 	options := lo.Map(cmd.Options, func(opt OptionInput, _ int) attribute.Option {
 		return attribute.Option{
-			Value:     opt.Value,
+			Name:      opt.Name,
 			Slug:      opt.Slug,
 			ColorCode: opt.ColorCode,
 			SortOrder: opt.SortOrder,
