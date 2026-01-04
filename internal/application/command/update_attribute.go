@@ -12,15 +12,14 @@ import (
 )
 
 type UpdateAttributeCommand struct {
-	ID        string
-	Version   int
-	Name      string
-	Slug      string
-	Type      string
-	Unit      *string
-	SortOrder int
-	Enabled   bool
-	Options   []OptionInput
+	ID      string
+	Version int
+	Name    string
+	Slug    string
+	Type    string
+	Unit    *string
+	Enabled bool
+	Options []OptionInput
 }
 
 type UpdateAttributeCommandHandler interface {
@@ -67,7 +66,6 @@ func (h *updateAttributeHandler) Handle(ctx context.Context, cmd UpdateAttribute
 		cmd.Slug,
 		attrType,
 		cmd.Unit,
-		cmd.SortOrder,
 		cmd.Enabled,
 		options,
 	); err != nil {

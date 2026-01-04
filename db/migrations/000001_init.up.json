@@ -20,53 +20,6 @@
                 "key": {
                     "type": 1
                 }
-            },
-            {
-                "name": "attribute_sortOrder_v1",
-                "key": {
-                    "sortOrder": 1
-                }
-            }
-        ],
-        "commitQuorum": "majority",
-        "writeConcern": {
-            "w": "majority"
-        }
-    },
-    {
-        "createIndexes": "category_attribute",
-        "indexes": [
-            {
-                "name": "ca_categoryId_attributeId_unique_v1",
-                "key": {
-                    "categoryId": 1,
-                    "attributeId": 1
-                },
-                "unique": true
-            },
-            {
-                "name": "ca_categoryId_v1",
-                "key": {
-                    "categoryId": 1
-                }
-            },
-            {
-                "name": "ca_attributeId_v1",
-                "key": {
-                    "attributeId": 1
-                }
-            },
-            {
-                "name": "ca_enabled_v1",
-                "key": {
-                    "enabled": 1
-                }
-            },
-            {
-                "name": "ca_sortOrder_v1",
-                "key": {
-                    "sortOrder": 1
-                }
             }
         ],
         "commitQuorum": "majority",

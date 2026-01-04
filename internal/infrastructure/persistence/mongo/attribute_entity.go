@@ -21,7 +21,6 @@ type attributeEntity struct {
 	Slug       string         `bson:"slug"`
 	Type       string         `bson:"type"`
 	Unit       *string        `bson:"unit,omitempty"`
-	SortOrder  int            `bson:"sortOrder"`
 	Enabled    bool           `bson:"enabled"`
 	Options    []optionEntity `bson:"options,omitempty"`
 	CreatedAt  time.Time      `bson:"createdAt"`

@@ -36,7 +36,6 @@ type Attribute struct {
 	Slug       string
 	Type       AttributeType
 	Unit       *string
-	SortOrder  int
 	Enabled    bool
 	Options    []Option
 	CreatedAt  time.Time
@@ -53,11 +52,10 @@ func NewAttribute(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	sortOrder int,
 	enabled bool,
 	options []Option,
 ) (*Attribute, error) {
-	if err := validateAttributeData(name, slug, attrType, sortOrder); err != nil {
+	if err := validateAttributeData(name, slug, attrType); err != nil {
 		return nil, err
 	}
 
@@ -77,7 +75,6 @@ func NewAttribute(
 		Slug:       slug,
 		Type:       attrType,
 		Unit:       unit,
-		SortOrder:  sortOrder,
 		Enabled:    enabled,
 		Options:    options,
 		CreatedAt:  now,
@@ -93,7 +90,6 @@ func Reconstruct(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	sortOrder int,
 	enabled bool,
 	options []Option,
 	createdAt time.Time,
@@ -106,7 +102,6 @@ func Reconstruct(
 		Slug:       slug,
 		Type:       attrType,
 		Unit:       unit,
-		SortOrder:  sortOrder,
 		Enabled:    enabled,
 		Options:    options,
 		CreatedAt:  createdAt,
@@ -120,11 +115,10 @@ func (a *Attribute) Update(
 	slug string,
 	attrType AttributeType,
 	unit *string,
-	sortOrder int,
 	enabled bool,
 	options []Option,
 ) error {
-	if err := validateAttributeData(name, slug, attrType, sortOrder); err != nil {
+	if err := validateAttributeData(name, slug, attrType); err != nil {
 		return err
 	}
 
@@ -136,7 +130,6 @@ func (a *Attribute) Update(
 	a.Slug = slug
 	a.Type = attrType
 	a.Unit = unit
-	a.SortOrder = sortOrder
 	a.Enabled = enabled
 	a.Options = options
 	a.ModifiedAt = time.Now().UTC()
@@ -145,7 +138,7 @@ func (a *Attribute) Update(
 }
 
 // validateAttributeData validates business rules
-func validateAttributeData(name string, slug string, attrType AttributeType, sortOrder int) error {
+func validateAttributeData(name string, slug string, attrType AttributeType) error {
 	if name == "" {
 		return errors.New("name is required")
 	}
@@ -168,10 +161,6 @@ func validateAttributeData(name string, slug string, attrType AttributeType, sor
 
 	if !isValidAttributeType(attrType) {
 		return errors.New("invalid attribute type")
-	}
-
-	if sortOrder < 0 {
-		return errors.New("sortOrder cannot be negative")
 	}
 
 	return nil

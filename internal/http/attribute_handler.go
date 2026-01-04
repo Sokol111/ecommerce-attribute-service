@@ -62,7 +62,6 @@ func toAttributeResponse(a *attribute.Attribute) *httpapi.AttributeResponse {
 		Slug:       a.Slug,
 		Type:       httpapi.AttributeResponseType(a.Type),
 		Unit:       toOptString(a.Unit),
-		SortOrder:  a.SortOrder,
 		Enabled:    a.Enabled,
 		Options:    lo.Map(a.Options, toAttributeOptionResponse),
 		CreatedAt:  a.CreatedAt,
@@ -82,14 +81,13 @@ func toOptionInput(opt httpapi.AttributeOptionInput, _ int) command.OptionInput 
 
 func (h *attributeHandler) CreateAttribute(ctx context.Context, req *httpapi.CreateAttributeReq) (httpapi.CreateAttributeRes, error) {
 	cmd := command.CreateAttributeCommand{
-		ID:        lo.If(req.ID.IsSet(), &req.ID.Value).Else(nil),
-		Name:      req.Name,
-		Slug:      req.Slug,
-		Type:      string(req.Type),
-		Unit:      lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
-		SortOrder: req.SortOrder.Or(0),
-		Enabled:   req.Enabled,
-		Options:   lo.Map(req.Options, toOptionInput),
+		ID:      lo.If(req.ID.IsSet(), &req.ID.Value).Else(nil),
+		Name:    req.Name,
+		Slug:    req.Slug,
+		Type:    string(req.Type),
+		Unit:    lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
+		Enabled: req.Enabled,
+		Options: lo.Map(req.Options, toOptionInput),
 	}
 
 	created, err := h.createHandler.Handle(ctx, cmd)
@@ -142,7 +140,7 @@ func (h *attributeHandler) GetAttributeList(ctx context.Context, params httpapi.
 		Size:    params.Size,
 		Enabled: enabled,
 		Type:    attrType,
-		Sort:    string(params.Sort.Or(httpapi.GetAttributeListSortSortOrder)),
+		Sort:    string(params.Sort.Or(httpapi.GetAttributeListSortName)),
 		Order:   string(params.Order.Or(httpapi.GetAttributeListOrderAsc)),
 	}
 
@@ -163,15 +161,14 @@ func (h *attributeHandler) GetAttributeList(ctx context.Context, params httpapi.
 
 func (h *attributeHandler) UpdateAttribute(ctx context.Context, req *httpapi.UpdateAttributeReq) (httpapi.UpdateAttributeRes, error) {
 	cmd := command.UpdateAttributeCommand{
-		ID:        req.ID.String(),
-		Version:   req.Version,
-		Name:      req.Name,
-		Slug:      req.Slug,
-		Type:      string(req.Type),
-		Unit:      lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
-		SortOrder: req.SortOrder.Or(0),
-		Enabled:   req.Enabled,
-		Options:   lo.Map(req.Options, toOptionInput),
+		ID:      req.ID.String(),
+		Version: req.Version,
+		Name:    req.Name,
+		Slug:    req.Slug,
+		Type:    string(req.Type),
+		Unit:    lo.If(req.Unit.IsSet(), &req.Unit.Value).Else(nil),
+		Enabled: req.Enabled,
+		Options: lo.Map(req.Options, toOptionInput),
 	}
 
 	updated, err := h.updateHandler.Handle(ctx, cmd)
